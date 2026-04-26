@@ -46,7 +46,7 @@
             <button @click="playSound('click'); scrollToSmartGrill()" class="most-requested-btn"><span>🔥</span> الأكثر طلباً</button>
             <button @click="playSound('click'); showSearchModal = true" class="p-1.5 border border-[var(--border-color)] rounded text-brand-gold"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg></button>
             <select x-model="currentLang" @change="changeLanguage()" class="bg-[var(--card-bg)] text-brand-gold text-[10px] border border-[var(--border-color)] px-1 py-1 rounded outline-none font-bold">
-                <template x-for="(url, code) in langLinks" :key="code"><option :value="code" x-text="code.toUpperCase()"></option></template>
+                <template x-for="(url, code) in langLinks" :key="code"><option :value="code" x-text="langNames[code]"></option></template>
             </select>
         </div>
     </nav>
@@ -212,11 +212,36 @@
     <script>
         function taksimApp() {
             return {
-                isLoading: true, view: 'home', currentLang: 'ar', showSearchModal: false, showQRModal: false, showInvoiceModal: false, searchQuery: '', showCatBar: true, lastScroll: 0,
+                isLoading: true, view: 'home', currentLang: 'ar', showSearchModal: false, showInvoiceModal: false, searchQuery: '', showCatBar: true, lastScroll: 0,
                 allRawData: [], activeMenuItems: [], activeExploreItems: [], heroOffers: [], categoryBgs: {}, likes: [], quantities: {},
                 targetHeroIds: ['TP-116', 'TP-185', 'TP-186', 'TP-003', 'TP-004'],
-                langLinks: { ar: 'https://docs.google.com/spreadsheets/d/1Q_XjEVdVLZ78u-3WtcMg1e-pzLGwTPiceQoF5hDjWFE/export?format=csv&gid=2026156602', en: 'https://docs.google.com/spreadsheets/d/1Q_XjEVdVLZ78u-3WtcMg1e-pzLGwTPiceQoF5hDjWFE/export?format=csv&gid=1709873212' },
-                get isRTL() { return this.currentLang === 'ar'; },
+                
+                langNames: {
+                    ar: '🌍 العربية', en: '🌍 English', tr: '🌍 Türkçe', es: '🌍 Español', ru: '🌍 Русский',
+                    ur: '🌍 اردو', hi: '🌍 हिन्दी', fr: '🌍 Français', de: '🌍 Deutsch', zh: '🌍 中文',
+                    ja: '🌍 日本語', ko: '🌍 한국어', it: '🌍 Italiano', vi: '🌍 Tiếng Việt', th: '🌍 ไทย', id: '🌍 Indonesia'
+                },
+                
+                langLinks: {
+                    ar: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQno9FsgFxtNISsxCRUGDsPnqmNP4umTGcw8tS8s10usoNYxErtcQhsZ82TmcHLuvsLjTePky4aw4JT/pub?gid=2026156602&single=true&output=csv',
+                    en: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQno9FsgFxtNISsxCRUGDsPnqmNP4umTGcw8tS8s10usoNYxErtcQhsZ82TmcHLuvsLjTePky4aw4JT/pub?gid=1709873212&single=true&output=csv',
+                    tr: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQno9FsgFxtNISsxCRUGDsPnqmNP4umTGcw8tS8s10usoNYxErtcQhsZ82TmcHLuvsLjTePky4aw4JT/pub?gid=932024028&single=true&output=csv',
+                    es: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQno9FsgFxtNISsxCRUGDsPnqmNP4umTGcw8tS8s10usoNYxErtcQhsZ82TmcHLuvsLjTePky4aw4JT/pub?gid=2126154876&single=true&output=csv',
+                    ru: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQno9FsgFxtNISsxCRUGDsPnqmNP4umTGcw8tS8s10usoNYxErtcQhsZ82TmcHLuvsLjTePky4aw4JT/pub?gid=1383179966&single=true&output=csv',
+                    ur: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQno9FsgFxtNISsxCRUGDsPnqmNP4umTGcw8tS8s10usoNYxErtcQhsZ82TmcHLuvsLjTePky4aw4JT/pub?gid=1356221249&single=true&output=csv',
+                    hi: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQno9FsgFxtNISsxCRUGDsPnqmNP4umTGcw8tS8s10usoNYxErtcQhsZ82TmcHLuvsLjTePky4aw4JT/pub?gid=1947060246&single=true&output=csv',
+                    fr: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQno9FsgFxtNISsxCRUGDsPnqmNP4umTGcw8tS8s10usoNYxErtcQhsZ82TmcHLuvsLjTePky4aw4JT/pub?gid=1967929524&single=true&output=csv',
+                    de: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQno9FsgFxtNISsxCRUGDsPnqmNP4umTGcw8tS8s10usoNYxErtcQhsZ82TmcHLuvsLjTePky4aw4JT/pub?gid=330421505&single=true&output=csv',
+                    zh: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQOkdnVoo1JZxM3ZIw11KaQno61mag50VxycvqZ-kY6OC0oZ3tef1gJJYAnStaLlLsmaLvzIlR6KKRK/pub?gid=597359201&single=true&output=csv',
+                    ja: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQOkdnVoo1JZxM3ZIw11KaQno61mag50VxycvqZ-kY6OC0oZ3tef1gJJYAnStaLlLsmaLvzIlR6KKRK/pub?gid=1140262731&single=true&output=csv',
+                    ko: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQOkdnVoo1JZxM3ZIw11KaQno61mag50VxycvqZ-kY6OC0oZ3tef1gJJYAnStaLlLsmaLvzIlR6KKRK/pub?gid=961009172&single=true&output=csv',
+                    it: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQOkdnVoo1JZxM3ZIw11KaQno61mag50VxycvqZ-kY6OC0oZ3tef1gJJYAnStaLlLsmaLvzIlR6KKRK/pub?gid=1885756520&single=true&output=csv',
+                    vi: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQOkdnVoo1JZxM3ZIw11KaQno61mag50VxycvqZ-kY6OC0oZ3tef1gJJYAnStaLlLsmaLvzIlR6KKRK/pub?gid=37768217&single=true&output=csv',
+                    th: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQOkdnVoo1JZxM3ZIw11KaQno61mag50VxycvqZ-kY6OC0oZ3tef1gJJYAnStaLlLsmaLvzIlR6KKRK/pub?gid=369450170&single=true&output=csv',
+                    id: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQOkdnVoo1JZxM3ZIw11KaQno61mag50VxycvqZ-kY6OC0oZ3tef1gJJYAnStaLlLsmaLvzIlR6KKRK/pub?gid=1467238039&single=true&output=csv'
+                },
+                
+                get isRTL() { return ['ar', 'ur'].includes(this.currentLang); },
                 handleScroll() { this.showCatBar = window.pageYOffset <= this.lastScroll; this.lastScroll = window.pageYOffset; },
                 playSound(type) { const audio = document.getElementById(type === 'pop' ? 'pop-sfx' : 'click-sfx'); if(audio) { audio.currentTime = 0; audio.volume = 0.4; audio.play().catch(()=>{}); } },
                 async changeLanguage() {
@@ -249,14 +274,14 @@
                 getCatItems(cat) { return this.activeMenuItems.filter(i => i.category === cat); },
                 getCategoryBg(cat) { return this.categoryBgs[cat] || ''; },
                 get searchResults() { const q = this.searchQuery.toLowerCase(); return q ? this.activeMenuItems.filter(i => i.name.toLowerCase().includes(q)) : []; },
-                scrollToSmartGrill() { this.view = 'menu'; this.$nextTick(() => { setTimeout(() => { let targetCat = this.normalCategories.find(c => c.includes('مشوي') || c.toLowerCase().includes('grill')); if(targetCat) { const el = document.getElementById('cat-' + btoa(unescape(encodeURIComponent(targetCat))).replace(/=/g, '')); if(el) window.scrollTo({ top: el.offsetTop - 110, behavior: 'smooth' }); } }, 300); }); },
+                scrollToSmartGrill() { this.view = 'menu'; this.showSearchModal = false; this.$nextTick(() => { setTimeout(() => { let targetCat = this.normalCategories.find(c => c.includes('مشوي') || c.toLowerCase().includes('grill')); if(targetCat) { const el = document.getElementById('cat-' + btoa(unescape(encodeURIComponent(targetCat))).replace(/=/g, '')); if(el) window.scrollTo({ top: el.offsetTop - 110, behavior: 'smooth' }); } }, 300); }); },
                 scrollToCat(catName) { this.view = 'menu'; this.showSearchModal = false; this.$nextTick(() => { setTimeout(() => { const el = document.getElementById('cat-' + btoa(unescape(encodeURIComponent(catName))).replace(/=/g, '')); if(el) window.scrollTo({ top: el.offsetTop - 110, behavior: 'smooth' }); }, 200); }); },
-                toggleLike(item) { this.playSound('pop'); if(this.likes.includes(item.id)) { this.likes = this.likes.filter(id => id !== item.id); delete this.quantities[item.id]; } else { this.likes.push(item.id); this.quantities[item.id] = 1; } localStorage.setItem('jawhara_likes_v43', JSON.stringify(this.likes)); localStorage.setItem('jawhara_qty_v43', JSON.stringify(this.quantities)); },
+                toggleLike(item) { this.playSound('pop'); if(this.likes.includes(item.id)) { this.likes = this.likes.filter(id => id !== item.id); delete this.quantities[item.id]; } else { this.likes.push(item.id); this.quantities[item.id] = 1; } localStorage.setItem('jawhara_likes_v44', JSON.stringify(this.likes)); localStorage.setItem('jawhara_qty_v44', JSON.stringify(this.quantities)); },
                 isLiked(id) { return this.likes.includes(id); },
-                updateQty(id, d) { this.quantities[id] = Math.max(1, (this.quantities[id] || 1) + d); localStorage.setItem('jawhara_qty_v43', JSON.stringify(this.quantities)); },
+                updateQty(id, d) { this.quantities[id] = Math.max(1, (this.quantities[id] || 1) + d); localStorage.setItem('jawhara_qty_v44', JSON.stringify(this.quantities)); },
                 get likedItemsList() { return this.likes.map(id => this.allRawData.find(i => i.id === id)).filter(Boolean); },
                 calculateTotal() { return this.likedItemsList.reduce((sum, item) => sum + (parseFloat(item.price) || 0) * (this.quantities[item.id] || 1), 0).toFixed(2); },
-                initApp() { const saved = localStorage.getItem('jawhara_likes_v43'); if(saved) this.likes = JSON.parse(saved); const savedQ = localStorage.getItem('jawhara_qty_v43'); if(savedQ) this.quantities = JSON.parse(savedQ); this.changeLanguage(); setInterval(() => { this.startAutoScroll(); }, 5000); },
+                initApp() { const saved = localStorage.getItem('jawhara_likes_v44'); if(saved) this.likes = JSON.parse(saved); const savedQ = localStorage.getItem('jawhara_qty_v44'); if(savedQ) this.quantities = JSON.parse(savedQ); this.changeLanguage(); setInterval(() => { this.startAutoScroll(); }, 5000); },
                 startAutoScroll() { const slider = document.getElementById('hero-slider'); if (slider) { const slideWidth = slider.clientWidth; if (slider.scrollLeft + slideWidth >= slider.scrollWidth - 10) { slider.scrollTo({ left: 0, behavior: 'smooth' }); } else { slider.scrollBy({ left: this.isRTL ? -slideWidth : slideWidth, behavior: 'smooth' }); } } }
             }
         }
