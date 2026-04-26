@@ -34,15 +34,15 @@
 
         .mirror-img { transform: scaleX(-1); }
 
-        .category-container {
-            margin-bottom: 40px; border-radius: 16px; overflow: hidden;
-            border: 1px solid var(--border-color); background-color: #0d0d0d;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-        }
+        .category-container { margin-bottom: 40px; border-radius: 16px; overflow: hidden; border: 1px solid var(--border-color); background-color: #0d0d0d; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
         .category-banner { height: 25vh; width: 100%; position: relative; overflow: hidden; }
         .category-banner img { width: 100%; height: 100%; object-fit: cover; }
         .category-banner-overlay { position: absolute; inset: 0; background: linear-gradient(to top, #0d0d0d 0%, rgba(13,13,13,0.8) 20%, transparent 100%); }
         .category-title-wrapper { position: absolute; bottom: 15px; right: 15px; z-index: 10; }
+
+        .tiktok-container { height: 100dvh; overflow-y: scroll; scroll-snap-type: y mandatory; }
+        .tiktok-item { height: 100dvh; scroll-snap-align: start; position: relative; }
+        .drive-iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; z-index: 0; }
 
         .most-requested-btn {
             background: linear-gradient(to right, #D4AF37, #B38728); color: #000; font-weight: 900;
@@ -68,7 +68,7 @@
         </div>
         <div class="flex items-center gap-1.5">
             <button @click="playSound('click'); scrollToSmartGrill()" class="most-requested-btn"><span>🔥</span> الأكثر طلباً</button>
-            <button @click="playSound('click'); showSearchModal = true" class="p-1.5 border border-[var(--border-color)] rounded text-brand-gold">
+            <button @click="playSound('click'); showSearchModal = true" class="p-1.5 border border-[var(--border-color)] rounded text-brand-gold hover:bg-[var(--white-gold)] hover:text-black transition">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
             </button>
             <select x-model="currentLang" @change="changeLanguage()" class="bg-[var(--card-bg)] text-brand-gold text-[10px] border border-[var(--border-color)] px-1 py-1 rounded outline-none font-bold">
@@ -76,6 +76,31 @@
             </select>
         </div>
     </nav>
+
+    <div x-show="showSearchModal" x-transition.opacity x-cloak class="fixed inset-0 z-[250] bg-[var(--bg-main)] flex flex-col" style="background-image: var(--marble-img);">
+        <div class="flex items-center gap-3 p-4 glass-nav">
+            <button @click="playSound('click'); showSearchModal = false; searchQuery=''" class="text-brand-gold p-2">✕</button>
+            <input type="text" x-model="searchQuery" placeholder="ابحث عن طبق..." class="flex-1 theme-card rounded-lg px-4 py-2.5 text-sm outline-none font-black tracking-wide text-[var(--text-main)]">
+        </div>
+        <div class="flex-1 overflow-y-auto p-5 pb-32">
+            <div x-show="searchQuery.trim() === ''" class="grid grid-cols-3 gap-3">
+                <template x-for="cat in normalCategories" :key="cat">
+                    <button @click="playSound('click'); scrollToCat(cat)" class="theme-card rounded-xl p-4 flex flex-col items-center gap-2 active:scale-95 transition">
+                        <span class="text-3xl">🍽️</span><span class="text-[10px] font-black text-center text-brand-gold" x-text="cat"></span>
+                    </button>
+                </template>
+            </div>
+            <div x-show="searchQuery.trim() !== ''" class="flex flex-col gap-3">
+                <template x-for="item in searchResults" :key="item.id">
+                    <div class="theme-card rounded-xl p-3 flex gap-3 items-center">
+                        <img :src="item.image" class="w-16 h-16 rounded-lg object-cover border border-[var(--border-color)]">
+                        <div class="flex-1"><h4 class="text-[14px] font-black tracking-wide text-brand-gold" x-text="item.name"></h4><span class="font-black text-xs text-brand-gold" x-text="item.price + ' SR'"></span></div>
+                        <button @click="toggleLike(item)" class="p-3 glass-nav rounded-full border border-[var(--border-color)] active:scale-90 transition"><span x-text="isLiked(item.id) ? '❤️' : '🤍'"></span></button>
+                    </div>
+                </template>
+            </div>
+        </div>
+    </div>
 
     <div x-show="isLoading" class="fixed inset-0 z-[200] bg-[var(--bg-main)] flex flex-col items-center justify-center">
         <img src="https://cdn.phototourl.com/free/2026-04-06-d0b6c388-fcdf-40fd-a7dc-56a84b8309a2.png" class="h-20 mb-6 animate-pulse">
@@ -89,25 +114,50 @@
             <p class="text-sm text-brand-gold opacity-90 leading-relaxed font-medium">أهلاً بكم في فرع حي الجوهرة، نتشرف بخدمتكم.</p>
         </section>
 
+        <section class="relative h-[30vh] w-full mb-10 px-4">
+            <div class="slider-container h-full no-scrollbar rounded-xl shadow-2xl border border-[var(--border-color)]" id="hero-slider">
+                <template x-for="(item, index) in heroOffers" :key="item.id">
+                    <div class="slide relative h-full theme-card rounded-xl overflow-hidden">
+                        <img :src="item.image" loading="lazy" class="w-full h-full object-cover opacity-90">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent flex flex-col justify-end p-5">
+                            <h2 class="text-xl font-black mb-1 text-brand-gold drop-shadow-md tracking-wide" x-text="item.name"></h2>
+                            <div class="flex justify-between items-center">
+                                <span class="text-lg font-black text-[var(--white-gold)] drop-shadow" x-text="item.price + ' SR'"></span>
+                                <button @click="playSound('click'); scrollToCat(item.category)" class="bg-[var(--white-gold)] text-black px-4 py-1.5 text-[11px] font-black rounded shadow-lg active:scale-95 transition">اطلب الآن</button>
+                            </div>
+                        </div>
+                    </div>
+                </template>
+            </div>
+        </section>
+
         <section class="px-6 mb-6">
+            <h3 class="text-lg font-black mb-4 text-center text-brand-gold tracking-wide">موقعنا بالجوهرة</h3>
             <div class="overflow-hidden rounded-2xl shadow-xl border border-[var(--border-color)] p-1 bg-[var(--card-bg)]">
                 <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3769.386486430979!2d41.07816606016587!3d19.134552382156638!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x15e68f00666986fd%3A0xc81a3e382a661914!2z2YXYt9i52YUg2KrZgtiz2YrZhSDYqNmI2YrZhtiqIHwgVGFrc2ltcG9pbnQgcmVzdGF1cmFudHM!5e0!3m2!1sar!2ssa!4v1776361993640!5m2!1sar!2ssa" width="100%" height="200" style="border:0; border-radius:12px;" allowfullscreen="" loading="lazy"></iframe>
             </div>
         </section>
 
         <div class="px-4 mb-10">
-            <button @click="playSound('click'); scrollToSmartGrill()" class="w-full bg-gradient-to-r from-[#D4AF37] to-[#B38728] text-black rounded-xl p-5 flex items-center justify-between shadow-2xl active:scale-95 transition">
-                <div class="flex items-center gap-4"><span class="text-4xl">🔥</span><div class="text-right"><h3 class="font-black text-xl tracking-wide">قسم المشويات</h3><p class="text-[11px] font-bold opacity-90 uppercase">The Most Requested</p></div></div><span class="text-2xl font-black">➔</span>
+            <button @click="playSound('click'); scrollToSmartGrill()" class="w-full bg-gradient-to-r from-[#D4AF37] to-[#B38728] text-black rounded-xl p-5 flex items-center justify-between shadow-[0_4px_20px_rgba(212,175,55,0.4)] active:scale-95 transition border border-[var(--white-gold)]/20">
+                <div class="flex items-center gap-4">
+                    <span class="text-4xl">🔥</span>
+                    <div class="text-right">
+                        <h3 class="font-black text-xl tracking-wide">قسم المشويات</h3>
+                        <p class="text-[11px] font-bold opacity-90 uppercase">The Most Requested</p>
+                    </div>
+                </div>
+                <span class="text-2xl font-black">➔</span>
             </button>
         </div>
 
         <section class="px-5 mb-10">
             <div class="grid grid-cols-2 gap-3">
                 <template x-for="cat in normalCategories" :key="cat">
-                    <button @click="playSound('click'); scrollToCat(cat)" class="theme-card relative h-28 rounded-xl overflow-hidden flex items-center justify-center border active:scale-95 transition">
+                    <button @click="playSound('click'); scrollToCat(cat)" class="cat-box theme-card relative h-28 rounded-xl overflow-hidden flex items-center justify-center border border-[var(--border-color)] active:scale-95 transition">
                         <img :src="getCategoryBg(cat)" class="absolute inset-0 w-full h-full opacity-50 object-cover mirror-img">
                         <div class="absolute inset-0 bg-black/50"></div>
-                        <span class="relative z-10 font-black text-sm tracking-wide text-center px-2 text-brand-gold" x-text="cat"></span>
+                        <span class="relative z-10 font-black text-sm tracking-wide text-center px-2 text-brand-gold drop-shadow-md" x-text="cat"></span>
                     </button>
                 </template>
             </div>
@@ -118,7 +168,7 @@
         <div class="fixed top-[65px] left-0 w-full z-40 transition-transform duration-300" :class="showCatBar ? 'translate-y-0' : '-translate-y-full'">
             <div class="flex gap-2 overflow-x-auto no-scrollbar px-4 py-2 glass-nav border-b border-[var(--border-color)]">
                 <template x-for="cat in normalCategories" :key="cat">
-                    <button @click="playSound('click'); scrollToCat(cat)" class="px-4 py-2 text-xs font-black tracking-wide whitespace-nowrap text-brand-gold opacity-70 hover:opacity-100" x-text="cat"></button>
+                    <button @click="playSound('click'); scrollToCat(cat)" class="px-4 py-2 text-xs font-black tracking-wide whitespace-nowrap text-brand-gold opacity-70 hover:opacity-100 transition active:scale-95" x-text="cat"></button>
                 </template>
             </div>
         </div>
@@ -129,26 +179,38 @@
                     <div class="category-banner border-b border-[var(--border-color)]">
                         <img :src="getCategoryBg(cat)" class="mirror-img" loading="lazy">
                         <div class="category-banner-overlay"></div>
-                        <div class="category-title-wrapper border-r-4 pr-3 border-[var(--gold)]">
-                            <h2 class="text-3xl font-black tracking-wide text-brand-gold drop-shadow-md" x-text="cat"></h2>
+                        <div class="category-title-wrapper border-r-4 pr-3 border-[var(--gold)] drop-shadow-xl">
+                            <h2 class="text-3xl md:text-5xl font-black tracking-wide text-brand-gold drop-shadow-md" x-text="cat"></h2>
+                            <template x-if="cat.includes('مشوي') || cat.includes('Grill')">
+                                <span class="inline-block mt-2 bg-[var(--gold)] text-black text-[11px] font-black px-3 py-1 rounded-full shadow-lg">القـسم الأكـثر طلبـاً</span>
+                            </template>
                         </div>
                     </div>
-                    <div class="p-4 flex flex-col gap-5">
+
+                    <div class="p-4 md:p-6 flex flex-col gap-5">
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                             <template x-for="item in getCatItems(cat)" :key="item.id">
                                 <div class="flex flex-col relative theme-card rounded-xl p-4 transition-all"
                                      :class="(item.name.includes('جريل') || item.name.toLowerCase().includes('grill')) ? 'border-[var(--gold)] bg-[var(--gold)]/10 shadow-[0_0_20px_rgba(212,175,55,0.15)]' : 'border-[var(--border-color)]/50'">
+                                    
                                     <template x-if="item.name.includes('جريل') || item.name.toLowerCase().includes('grill')">
                                         <span class="absolute -top-3 left-4 bg-gradient-to-r from-[var(--gold)] to-[#B38728] text-black text-[10px] font-black px-3 py-0.5 rounded shadow-lg">🔥 الأكثر طلباً</span>
                                     </template>
+
                                     <div class="flex items-end w-full mb-2 gap-1.5">
-                                        <h4 class="font-black text-[14px] tracking-wide leading-snug w-[74%] flex-grow" style="text-shadow: 0px 1px 2px rgba(0,0,0,0.8);" :class="(item.name.includes('جريل')) ? 'text-[var(--gold)]' : 'text-brand-gold'" x-text="item.name"></h4>
+                                        <h4 class="font-black text-[14px] md:text-[16px] tracking-wide leading-snug w-[74%] flex-grow" style="text-shadow: 0px 1px 2px rgba(0,0,0,0.8);"
+                                            :class="(item.name.includes('جريل') || item.name.toLowerCase().includes('grill')) ? 'text-[var(--gold)]' : 'text-brand-gold'" x-text="item.name"></h4>
                                         <div class="flex-1 border-b-2 border-dotted relative top-[-5px] min-w-[8px] border-[var(--border-color)]"></div>
-                                        <span class="font-black text-[14px] whitespace-nowrap" style="text-shadow: 0px 1px 2px rgba(0,0,0,0.8);" :class="(item.name.includes('جريل')) ? 'text-[var(--gold)]' : 'text-brand-gold'" x-text="item.price + ' SR'"></span>
+                                        <span class="font-black text-[14px] md:text-[16px] whitespace-nowrap" style="text-shadow: 0px 1px 2px rgba(0,0,0,0.8);"
+                                              :class="(item.name.includes('جريل') || item.name.toLowerCase().includes('grill')) ? 'text-[var(--gold)]' : 'text-brand-gold'" x-text="item.price + ' SR'"></span>
                                     </div>
+
                                     <div class="flex justify-between items-start gap-2">
-                                        <p class="text-[11px] font-medium opacity-70 line-clamp-2 flex-1 pr-1 leading-relaxed text-brand-gold" x-text="item.description"></p>
-                                        <button @click="toggleLike(item)" class="p-2.5 glass-nav rounded-full border border-[var(--border-color)] active:scale-75 transition"><span x-text="isLiked(item.id) ? '❤️' : '🤍'" class="text-xs"></span></button>
+                                        <p class="text-[11px] md:text-[12.5px] font-medium opacity-70 line-clamp-2 flex-1 pr-1 leading-relaxed" 
+                                           :class="(item.name.includes('جريل') || item.name.toLowerCase().includes('grill')) ? 'text-[var(--gold)]' : 'text-brand-gold'" x-text="item.description"></p>
+                                        <button @click="toggleLike(item)" class="p-2.5 glass-nav rounded-full border border-[var(--border-color)] active:scale-75 transition">
+                                            <span x-text="isLiked(item.id) ? '❤️' : '🤍'" class="text-xs"></span>
+                                        </button>
                                     </div>
                                 </div>
                             </template>
@@ -159,15 +221,67 @@
         </div>
     </div>
 
+    <div x-show="view === 'explore'" x-cloak class="tiktok-container relative bg-black">
+        <template x-for="item in activeExploreItems" :key="item.id">
+            <div class="tiktok-item">
+                <div class="w-full h-full relative">
+                    <template x-if="item.isDrive">
+                        <iframe :src="item.image" class="drive-iframe" allow="autoplay; fullscreen"></iframe>
+                    </template>
+                    <div class="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent flex flex-col justify-end p-6 pb-32 pointer-events-none">
+                        <h2 class="text-3xl font-black mb-2 drop-shadow-xl tracking-wide text-brand-gold" x-text="item.name"></h2>
+                        <div class="absolute right-4 bottom-32 flex flex-col gap-6 items-center pointer-events-auto">
+                            <button @click="toggleLike(item)" class="bg-black/50 backdrop-blur p-4 rounded-full border border-white/20 active:scale-75 transition shadow-lg">
+                                <span class="text-3xl" x-text="isLiked(item.id) ? '❤️' : '🤍'"></span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </template>
+    </div>
+
+    <div x-show="view === 'likes'" x-cloak class="min-h-screen pt-20 pb-32 px-4">
+        <h2 class="text-2xl font-black text-center mb-8 tracking-wide text-brand-gold">طلباتي</h2>
+        <div x-show="likes.length === 0" class="text-center mt-20 text-[var(--white-gold)] opacity-70 font-black">سلتك فارغة</div>
+        <div class="flex flex-col gap-4 mb-10">
+            <template x-for="item in likedItemsList" :key="item.id">
+                <div class="theme-card p-4 flex flex-col gap-3 rounded-xl border border-[var(--border-color)]">
+                    <div class="flex justify-between items-center"><div class="flex-1 px-2"><h4 class="font-black tracking-wide text-[14px] leading-snug text-brand-gold" x-text="item.name"></h4><span class="text-[var(--white-gold)] text-xs font-black" x-text="item.price + ' SR'"></span></div><button @click="playSound('click'); toggleLike(item)" class="text-red-500 bg-red-500/10 px-4 py-2 rounded-lg text-xs font-bold border border-red-500/20 active:scale-95 transition">حذف</button></div>
+                    <div class="flex justify-between items-center px-2 pt-3 border-t border-[var(--border-color)]"><span class="text-xs text-brand-gold opacity-90 font-black">الكمية:</span><div class="flex items-center gap-4 bg-[#0d0d0d] border border-[var(--border-color)] rounded-lg px-3 py-1 shadow-inner"><button @click="playSound('click'); updateQty(item.id, -1)" class="text-lg font-black text-[var(--white-gold)] active:scale-75 transition">-</button><span class="font-black text-sm w-4 text-center text-[var(--text-main)]" x-text="quantities[item.id] || 1"></span><button @click="playSound('click'); updateQty(item.id, 1)" class="text-lg font-black text-[var(--white-gold)] active:scale-75 transition">+</button></div></div>
+                </div>
+            </template>
+        </div>
+        <button x-show="likes.length > 0" @click="playSound('click'); showInvoiceModal = true" class="w-full bg-gradient-to-r from-[var(--white-gold)] to-[#B38728] text-black font-black tracking-wide py-4 rounded-xl text-lg shadow-xl active:scale-95 transition">إظهار كفاتورة</button>
+    </div>
+
+    <div x-show="showInvoiceModal" x-cloak class="fixed inset-0 z-[300] bg-black/80 flex flex-col items-center justify-center p-4 backdrop-blur-md">
+        <div class="theme-card w-full max-w-md rounded-2xl overflow-hidden shadow-2xl border border-[var(--border-color)] flex flex-col max-h-[85vh]">
+            <div class="p-5 border-b border-[var(--border-color)] flex justify-between items-center glass-nav"><h2 class="font-black text-xl tracking-wide text-brand-gold">الفاتورة</h2><button @click="playSound('click'); showInvoiceModal = false" class="text-[var(--white-gold)] opacity-70 text-2xl active:scale-75 transition">✕</button></div>
+            <div class="p-5 overflow-y-auto flex-1">
+                <template x-for="item in likedItemsList" :key="item.id">
+                    <div class="flex justify-between items-center border-b border-[var(--border-color)] border-dashed py-3 last:border-0"><div class="flex-1 pr-2"><h4 class="font-black tracking-wide text-[14px] leading-snug text-[var(--text-main)]" x-text="item.name"></h4><span class="text-[10px] text-brand-gold opacity-80 mt-1 font-bold" x-text="'الكمية: ' + (quantities[item.id] || 1)"></span></div><div class="font-black text-[var(--white-gold)] text-[14px]" x-text="((parseFloat(item.price)||0) * (quantities[item.id] || 1)) + ' SR'"></div></div>
+                </template>
+            </div>
+            <div class="p-4 bg-black border-t border-[var(--border-color)] flex justify-between items-center">
+                <span class="text-xs font-bold text-brand-gold opacity-80">الإجمالي التقريبي:</span>
+                <span class="text-lg font-black text-[var(--gold)]" x-text="calculateTotal() + ' SR'"></span>
+            </div>
+        </div>
+    </div>
+
     <div class="fixed bottom-0 w-full glass-nav px-4 py-3 z-[150]">
         <div class="flex justify-between items-center max-w-md mx-auto">
-            <button @click="playSound('click'); view = 'home'" :class="view === 'home' ? 'text-brand-gold' : 'opacity-50'" class="flex flex-col items-center gap-1 w-1/3 transition active:scale-95">
+            <button @click="playSound('click'); view = 'home'" :class="view === 'home' ? 'text-brand-gold' : 'opacity-50'" class="flex flex-col items-center gap-1 w-1/4 transition active:scale-95">
                 <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 3l9 7.5v10.5h-6v-6h-6v6h-6v-10.5z"/></svg><span class="text-[10px] font-black tracking-wide">الرئيسية</span>
             </button>
-            <button @click="playSound('click'); view = 'menu'" :class="view === 'menu' ? 'text-brand-gold' : 'opacity-50'" class="flex flex-col items-center gap-1 w-1/3 transition active:scale-95">
+            <button @click="playSound('click'); view = 'menu'" :class="view === 'menu' ? 'text-brand-gold' : 'opacity-50'" class="flex flex-col items-center gap-1 w-1/4 transition active:scale-95">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"></path></svg><span class="text-[10px] font-black tracking-wide">المنيو</span>
             </button>
-            <button @click="playSound('click'); view = 'likes'" :class="view === 'likes' ? 'text-brand-gold' : 'opacity-50'" class="flex flex-col items-center gap-1 relative w-1/3 transition active:scale-95">
+            <button @click="playSound('click'); view = 'explore'" :class="view === 'explore' ? 'text-brand-gold' : 'opacity-50'" class="flex flex-col items-center gap-1 w-1/4 transition active:scale-95">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg><span class="text-[10px] font-black tracking-wide">استكشاف</span>
+            </button>
+            <button @click="playSound('click'); view = 'likes'" :class="view === 'likes' ? 'text-brand-gold' : 'opacity-50'" class="flex flex-col items-center gap-1 relative w-1/4 transition active:scale-95">
                 <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
                 <span x-show="likes.length > 0" class="absolute -top-1 right-1/2 translate-x-4 bg-red-600 text-white text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center shadow-md" x-text="likes.length"></span>
                 <span class="text-[10px] font-black tracking-wide">طلباتي</span>
@@ -179,20 +293,25 @@
         function taksimApp() {
             return {
                 isLoading: true, view: 'home', currentLang: 'ar', 
-                showSearchModal: false, showInvoiceModal: false, searchQuery: '',        
+                showSearchModal: false, showQRModal: false, showInvoiceModal: false, searchQuery: '',        
                 showCatBar: true, lastScroll: 0,
-                allRawData: [], activeMenuItems: [], heroOffers: [], categoryBgs: {}, likes: [], quantities: {},
+                allRawData: [], activeMenuItems: [], activeExploreItems: [], heroOffers: [], categoryBgs: {}, likes: [], quantities: {},
                 targetHeroIds: ['TP-116', 'TP-185', 'TP-186', 'TP-003', 'TP-004'],
+
+                // روابط الجوهرة الحصرية
                 langLinks: {
                     ar: 'https://docs.google.com/spreadsheets/d/1Q_XjEVdVLZ78u-3WtcMg1e-pzLGwTPiceQoF5hDjWFE/export?format=csv&gid=2026156602',
                     en: 'https://docs.google.com/spreadsheets/d/1Q_XjEVdVLZ78u-3WtcMg1e-pzLGwTPiceQoF5hDjWFE/export?format=csv&gid=1709873212'
                 },
-                get isRTL() { return this.currentLang === 'ar'; },
+                get isRTL() { return ['ar', 'ur'].includes(this.currentLang); },
                 handleScroll() { this.showCatBar = window.pageYOffset <= this.lastScroll; this.lastScroll = window.pageYOffset; },
+                
                 playSound(type) {
-                    const audio = document.getElementById(type === 'pop' ? 'pop-sfx' : 'click-sfx');
+                    const id = type === 'pop' ? 'pop-sfx' : 'click-sfx';
+                    const audio = document.getElementById(id);
                     if(audio) { audio.currentTime = 0; audio.volume = 0.4; audio.play().catch(()=>{}); }
                 },
+
                 async changeLanguage() {
                     this.isLoading = true;
                     try {
@@ -202,56 +321,100 @@
                             header: false, skipEmptyLines: true,
                             complete: (results) => {
                                 const rows = results.data.slice(1);
+                                this.categoryBgs = {};
                                 this.allRawData = rows.map(cols => {
-                                    let id = (cols[0] || '').trim(); let cat = (cols[1] || '').trim();
+                                    let id = (cols[0] || '').trim();
+                                    let cat = (cols[1] || '').trim();
                                     if(parseInt(id.replace('TP-','')) >= 250 && parseInt(id.replace('TP-','')) <= 400) this.categoryBgs[cat] = (cols[6] || '').trim();
                                     return {
-                                        id: id, category: cat, name: (cols[2] || '').trim(), price: (cols[3] || '').trim(),
-                                        description: (cols[5] || '').trim(), image: (cols[6] || '').trim(),
-                                        available: cols.length > 8 ? (cols[8] || '').trim() : '' // توفر الجوهرة (العمود التاسع)
+                                        id: id, category: cat, name: (cols[2] || '').trim(),
+                                        price: (cols[3] || '').trim(), description: (cols[5] || '').trim(),
+                                        image: (cols[6] || '').trim(), 
+                                        // قراءة التوفر من العمود 9 (الاندكس 8) الخاص بالجوهرة
+                                        available: cols.length > 8 ? (cols[8] || '').trim() : ''
                                     }
                                 }).filter(i => i.id.startsWith('TP-'));
+                                
                                 this.activeMenuItems = this.allRawData.filter(i => i.available !== 'غير متوفر' && (parseInt(i.id.replace('TP-','')) < 250 || parseInt(i.id.replace('TP-','')) > 400));
+                                
+                                // جلب المنتجات المميزة (الهيرو)
                                 this.heroOffers = this.activeMenuItems.filter(i => this.targetHeroIds.includes(i.id));
+                                if(this.heroOffers.length === 0) this.heroOffers = this.activeMenuItems.slice(0, 4); // بديل احتياطي لو المنتجات المميزة غير متوفرة
+                                
+                                let dbExploreItems = this.allRawData.filter(i => ['الاستكشاف', 'Explore'].includes(i.category) && i.available !== 'غير متوفر');
+                                const vidBestSteakId = '11HoXmfaU1QxLnqsPY0EsPHB66WqZxB55';
+                                const directVids = [{ id: 'vid-beststeak', name: 'أفضل ستيك', image: `https://drive.google.com/file/d/${vidBestSteakId}/preview`, category: 'استكشاف', isDrive: true, custom: true }];
+                                this.activeExploreItems = [...directVids, ...dbExploreItems];
+
                                 this.isLoading = false;
                             }
                         });
                     } catch (e) { this.isLoading = false; }
                 },
-                get normalCategories() { return [...new Set(this.activeMenuItems.map(i => i.category))].filter(c => c); },
+                get normalCategories() { return [...new Set(this.activeMenuItems.map(i => i.category))].filter(c => c && !['الاستكشاف', 'Explore'].includes(c)); },
                 getCatItems(cat) { return this.activeMenuItems.filter(i => i.category === cat); },
                 getCategoryBg(cat) { return this.categoryBgs[cat] || ''; },
+
                 scrollToSmartGrill() {
                     this.view = 'menu';
+                    this.showSearchModal = false;
                     this.$nextTick(() => {
                         setTimeout(() => {
                             let targetCat = this.normalCategories.find(c => c.includes('مشوي') || c.toLowerCase().includes('grill'));
                             if(targetCat) {
-                                const el = document.getElementById('cat-' + btoa(unescape(encodeURIComponent(targetCat))).replace(/=/g, ''));
-                                if(el) window.scrollTo({ top: el.offsetTop - 110, behavior: 'smooth' });
+                                const targetId = 'cat-' + btoa(unescape(encodeURIComponent(targetCat))).replace(/=/g, '');
+                                const el = document.getElementById(targetId);
+                                if(el) { window.scrollTo({ top: el.offsetTop - 110, behavior: 'smooth' }); }
                             }
-                        }, 300);
+                        }, 300); 
                     });
                 },
+                
                 scrollToCat(catName) {
                     this.view = 'menu';
+                    this.showSearchModal = false;
                     this.$nextTick(() => {
                         setTimeout(() => {
-                            const el = document.getElementById('cat-' + btoa(unescape(encodeURIComponent(catName))).replace(/=/g, ''));
-                            if(el) window.scrollTo({ top: el.offsetTop - 110, behavior: 'smooth' });
+                            const targetId = 'cat-' + btoa(unescape(encodeURIComponent(catName))).replace(/=/g, '');
+                            const el = document.getElementById(targetId);
+                            if(el) { window.scrollTo({ top: el.offsetTop - 110, behavior: 'smooth' }); }
                         }, 200);
                     });
                 },
+
                 toggleLike(item) {
                     this.playSound('pop');
-                    if(this.likes.includes(item.id)) { this.likes = this.likes.filter(id => id !== item.id); delete this.quantities[item.id]; }
+                    if(this.likes.includes(item.id)) { this.likes = this.likes.filter(id => id !== item.id); delete this.quantities[item.id]; } 
                     else { this.likes.push(item.id); this.quantities[item.id] = 1; }
-                    localStorage.setItem('jawhara_likes_v41', JSON.stringify(this.likes));
+                    localStorage.setItem('jawhara_likes_v42', JSON.stringify(this.likes));
+                    localStorage.setItem('jawhara_qty_v42', JSON.stringify(this.quantities));
                 },
                 isLiked(id) { return this.likes.includes(id); },
+                updateQty(id, d) { 
+                    this.quantities[id] = Math.max(1, (this.quantities[id] || 1) + d); 
+                    localStorage.setItem('jawhara_qty_v42', JSON.stringify(this.quantities));
+                },
+                get likedItemsList() { return this.likes.map(id => this.allRawData.find(i => i.id === id)).filter(Boolean); },
+                calculateTotal() {
+                    return this.likedItemsList.reduce((sum, item) => {
+                        return sum + (parseFloat(item.price) || 0) * (this.quantities[item.id] || 1);
+                    }, 0).toFixed(2);
+                },
+                copyBranchUrl() { navigator.clipboard.writeText(window.location.origin).then(() => alert('تم النسخ بنجاح!')); },
+                
                 initApp() { 
-                    const saved = localStorage.getItem('jawhara_likes_v41'); if(saved) this.likes = JSON.parse(saved);
+                    const saved = localStorage.getItem('jawhara_likes_v42'); if(saved) this.likes = JSON.parse(saved);
+                    const savedQ = localStorage.getItem('jawhara_qty_v42'); if(savedQ) this.quantities = JSON.parse(savedQ);
                     this.changeLanguage(); 
+                    setInterval(() => { this.startAutoScroll(); }, 5000);
+                },
+                startAutoScroll() {
+                    const slider = document.getElementById('hero-slider');
+                    if (slider) {
+                        const slideWidth = slider.clientWidth;
+                        if (slider.scrollLeft + slideWidth >= slider.scrollWidth - 10) { slider.scrollTo({ left: 0, behavior: 'smooth' }); } 
+                        else { slider.scrollBy({ left: this.isRTL ? -slideWidth : slideWidth, behavior: 'smooth' }); }
+                    }
                 }
             }
         }
